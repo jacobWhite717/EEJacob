@@ -111,7 +111,7 @@ classdef CrossValidator
     
     methods (Access = public)
         % results: ResultsContainer
-        function results = kfold(obj, classifier_func, features, num_folds, name_val_args)
+        function [results, varargout] = kfold(obj, classifier_func, features, num_folds, name_val_args)
             arguments
                 obj
                 classifier_func 
@@ -119,18 +119,22 @@ classdef CrossValidator
                 num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
                 name_val_args.num_filtered_features double = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
+                name_val_args.save_classifiers = false
             end
             num_filtered_features = name_val_args.num_filtered_features;
             runs = name_val_args.runs;
+            save_classifiers = name_val_args.save_classifiers;
             clear name_val_args
 
+            if save_classifiers
+                classifiers = cell(runs*num_folds, 1);
+            end
             for run = 1:runs
                 folds = obj.kfold_partitions(features, num_folds);
 
                 temp_accuracy = zeros(num_folds,1);
                 temp_sensitivity = zeros(num_folds,1);
                 temp_specificity = zeros(num_folds,1);
-                classifiers = cell(num_folds, 1);
 
                 for i = 1:num_folds
                     train_data = folds{i}.x_train;
@@ -144,18 +148,23 @@ classdef CrossValidator
                     trained_model = classifier_func(train_data, train_labels, 'OptimizeHyperparameters', 'auto',...
                         'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName','expected-improvement-plus', ...
                         'UseParallel', obj.run_parallel, 'ShowPlots', false, 'Verbose', 0));
-                    % classifiers{i,1} = trained_model;
+                    if save_classifiers
+                        classifiers{((run-1)*num_folds)+i,1} = trained_model;
+                    end
                     [accuracy, sensitivity, specificity] = obj.evaluate_model(trained_model, test_data, test_labels);
                     temp_accuracy(i,1) = accuracy;
                     temp_sensitivity(i,1) = sensitivity;
                     temp_specificity(i,1) = specificity;
                 end
                 results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity);
+                if save_classifiers
+                    varargout{1} = classifiers;
+                end
             end
         end
 
         % results: ResultsContainer
-        function results = block(obj, classifier_func, features, num_blocks, name_val_args)
+        function [results, varargout] = block(obj, classifier_func, features, num_blocks, name_val_args)
             arguments
                 obj
                 classifier_func 
@@ -163,18 +172,22 @@ classdef CrossValidator
                 num_blocks {mustBeInteger,mustBeGreaterThan(num_blocks,1)}
                 name_val_args.num_filtered_features double = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
+                name_val_args.save_classifiers = false
             end
             num_filtered_features = name_val_args.num_filtered_features;
             runs = name_val_args.runs;
+            save_classifiers = name_val_args.save_classifiers;
             clear name_val_args
 
+            if save_classifiers
+                classifiers = cell(runs*num_blocks, 1);
+            end
             for run = 1:runs
                 blocks = obj.block_partitions(features, num_blocks);
                 
                 temp_accuracy = zeros(num_blocks,1);
                 temp_sensitivity  = zeros(num_blocks,1);
                 temp_specificity = zeros(num_blocks,1);
-                classifiers = cell(num_blocks, 1);
                 for i = 1:num_blocks
                     train_data = blocks{i}.x_train;
                     test_data = blocks{i}.x_test;
@@ -187,13 +200,18 @@ classdef CrossValidator
                     trained_model = classifier_func(train_data, train_labels, 'OptimizeHyperparameters', 'auto',...
                         'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName','expected-improvement-plus', ...
                         'UseParallel', obj.run_parallel, 'ShowPlots', false, 'Verbose', 0));
-                    % classifiers{i,1} = trained_model;
+                    if save_classifiers
+                        classifiers{((run-1)*num_blocks)+i,1} = trained_model;
+                    end
                     [accuracy, sensitivity, specificity] = obj.evaluate_model(trained_model, test_data, test_labels);
                     temp_accuracy(i,1) = accuracy;
                     temp_sensitivity(i,1) = sensitivity;
                     temp_specificity(i,1) = specificity;
                 end
                 results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity);
+                if save_classifiers
+                    varargout{1} = classifiers;
+                end
             end
         end
 
@@ -205,13 +223,15 @@ classdef CrossValidator
                 num_folds double
                 name_val_args.num_filtered_features double = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
+                name_val_args.save_classifiers = false
             end
 
 
             features = LabelRandomizer.FullRandomize(features);
             results = obj.kfold(classifier_func, features, num_folds, ...
                 num_filtered_features=name_val_args.num_filtered_features, ...
-                runs=name_val_args.runs );
+                runs=name_val_args.runs, ...
+                save_classifiers=name_val_args.save_classifiers);
         end
 
         function results = block_random(obj, classifier_func, features, num_folds, name_val_args)
@@ -222,12 +242,32 @@ classdef CrossValidator
                 num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
                 name_val_args.num_filtered_features double = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
+                name_val_args.save_classifiers = false
             end
 
             features = LabelRandomizer.BlockRandomize(features);
             results = obj.block(classifier_func, features, num_folds, ...
                 num_filtered_features=name_val_args.num_filtered_features, ...
-                runs=name_val_args.runs );
+                runs=name_val_args.runs, ...
+                save_classifiers=name_val_args.save_classifiers);
+        end
+
+        function results = block_random_kfold_classify(obj, classifier_func, features, num_folds, name_val_args)
+            arguments
+                obj
+                classifier_func 
+                features TrialContainer
+                num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
+                name_val_args.num_filtered_features double = features.featureVectorLength()
+                name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
+                name_val_args.save_classifiers = false
+            end
+
+            features = LabelRandomizer.BlockRandomize(features);
+            results = obj.kfold(classifier_func, features, num_folds, ...
+                num_filtered_features=name_val_args.num_filtered_features, ...
+                runs=name_val_args.runs, ...
+                save_classifiers=name_val_args.save_classifiers);
         end
         
     end 

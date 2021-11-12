@@ -42,6 +42,7 @@ classdef LabelRandomizer
             swapped_class_trials = TrialContainer(trials=trials);
         end
         
+        % rounds swapped trials count up, i.e. w/ 5 trails of a class, 3 are swapped
         function swapped_class_trials = BlockRandomize(trial_cont)
             arguments
                 trial_cont TrialContainer
