@@ -94,7 +94,7 @@ classdef CrossValidator
 
         end
 
-        function [accuracy, sensitivity, specificity] = evaluate_model(classifier, test_data, test_labels)
+        function [accuracy, sensitivity, specificity, precision, recall, f1] = evaluate_model(classifier, test_data, test_labels)
             predictions = predict(classifier, test_data);
             
             conf_mat = confusionmat(test_labels, predictions);
@@ -106,6 +106,10 @@ classdef CrossValidator
             accuracy = (TP+TN)/(TP+TN+FP+FN)*100;
             sensitivity = (TP)/(TP+FN)*100;
             specificity = (TN)/(TN+FP)*100;
+
+            precision = TP/(TP+FP)*100;
+            recall = TP/(TP+FN)*100;
+            f1 = 2*(precision*recall)/(precision+recall);
         end
     end
     
@@ -135,6 +139,9 @@ classdef CrossValidator
                 temp_accuracy = zeros(num_folds,1);
                 temp_sensitivity = zeros(num_folds,1);
                 temp_specificity = zeros(num_folds,1);
+                temp_precision = zeros(num_folds,1);
+                temp_recall = zeros(num_folds,1);
+                temp_f1 = zeros(num_folds,1);
 
                 for i = 1:num_folds
                     train_data = folds{i}.x_train;
@@ -151,12 +158,16 @@ classdef CrossValidator
                     if save_classifiers
                         classifiers{((run-1)*num_folds)+i,1} = trained_model;
                     end
-                    [accuracy, sensitivity, specificity] = obj.evaluate_model(trained_model, test_data, test_labels);
+                    [accuracy, sensitivity, specificity, precision, recall, f1] = obj.evaluate_model(trained_model, test_data, test_labels);
                     temp_accuracy(i,1) = accuracy;
                     temp_sensitivity(i,1) = sensitivity;
                     temp_specificity(i,1) = specificity;
+
+                    temp_precision(i,1) = precision;
+                    temp_recall(i,1) = recall;
+                    temp_f1(i,1) = f1;
                 end
-                results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity);
+                results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity, temp_precision, temp_recall, temp_f1);
                 if save_classifiers
                     varargout{1} = classifiers;
                 end
@@ -188,6 +199,10 @@ classdef CrossValidator
                 temp_accuracy = zeros(num_blocks,1);
                 temp_sensitivity  = zeros(num_blocks,1);
                 temp_specificity = zeros(num_blocks,1);
+                temp_precision = zeros(num_folds,1);
+                temp_recall = zeros(num_folds,1);
+                temp_f1 = zeros(num_folds,1);
+
                 for i = 1:num_blocks
                     train_data = blocks{i}.x_train;
                     test_data = blocks{i}.x_test;
@@ -203,12 +218,16 @@ classdef CrossValidator
                     if save_classifiers
                         classifiers{((run-1)*num_blocks)+i,1} = trained_model;
                     end
-                    [accuracy, sensitivity, specificity] = obj.evaluate_model(trained_model, test_data, test_labels);
+                    [accuracy, sensitivity, specificity, precision, recall, f1] = obj.evaluate_model(trained_model, test_data, test_labels);
                     temp_accuracy(i,1) = accuracy;
                     temp_sensitivity(i,1) = sensitivity;
                     temp_specificity(i,1) = specificity;
+
+                    temp_precision(i,1) = precision;
+                    temp_recall(i,1) = recall;
+                    temp_f1(i,1) = f1;
                 end
-                results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity);
+                results(run) = ResultsContainer(temp_accuracy, temp_sensitivity, temp_specificity, temp_precision, temp_recall, temp_f1);
                 if save_classifiers
                     varargout{1} = classifiers;
                 end
