@@ -199,9 +199,9 @@ classdef CrossValidator
                 temp_accuracy = zeros(num_blocks,1);
                 temp_sensitivity  = zeros(num_blocks,1);
                 temp_specificity = zeros(num_blocks,1);
-                temp_precision = zeros(num_folds,1);
-                temp_recall = zeros(num_folds,1);
-                temp_f1 = zeros(num_folds,1);
+                temp_precision = zeros(num_blocks,1);
+                temp_recall = zeros(num_blocks,1);
+                temp_f1 = zeros(num_blocks,1);
 
                 for i = 1:num_blocks
                     train_data = blocks{i}.x_train;
