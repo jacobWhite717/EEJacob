@@ -335,7 +335,7 @@ classdef CrossValidator
                 classifier_func 
                 features TrialContainer
                 num_folds double
-                name_val_args.num_filtered_features double = features.featureVectorLength()
+                name_val_args.num_filtered_features = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
                 name_val_args.save_classifiers = false
             end
@@ -354,7 +354,7 @@ classdef CrossValidator
                 classifier_func 
                 features TrialContainer
                 num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
-                name_val_args.num_filtered_features double = features.featureVectorLength()
+                name_val_args.num_filtered_features = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
                 name_val_args.save_classifiers = false
             end
@@ -372,7 +372,7 @@ classdef CrossValidator
                 classifier_func 
                 features TrialContainer
                 num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
-                name_val_args.num_filtered_features double = features.featureVectorLength()
+                name_val_args.num_filtered_features = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
                 name_val_args.save_classifiers = false
             end
@@ -390,7 +390,7 @@ classdef CrossValidator
                 classifier_func 
                 features TrialContainer
                 num_folds {mustBeInteger,mustBeGreaterThan(num_folds,1)}
-                name_val_args.num_filtered_features double = features.featureVectorLength()
+                name_val_args.num_filtered_features = features.featureVectorLength()
                 name_val_args.runs {mustBeInteger,mustBeNonnegative} = 1
                 name_val_args.save_classifiers = false
             end
