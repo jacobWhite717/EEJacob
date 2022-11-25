@@ -159,7 +159,7 @@ classdef CrossValidator
                 labels (:,1) double
                 num_feats double
                 name_val_args.test_features (:,:) double = []
-                name_val_args.scoring_func = @fscchi2
+                name_val_args.scoring_func = @fscmrmr %@fscchi2
             end
             test_features = name_val_args.test_features;
             scoring_func = name_val_args.scoring_func;
